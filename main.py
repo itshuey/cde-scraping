@@ -35,14 +35,12 @@ def test():
     print(result)
 
 def main():
-    # UI
-
-    list = []
+    listOfCodes = []
 
     print()
     print("Hi Shy!")
     print()
-    print("Input 'file' to run a batch")
+    print("Input 'file' to read in a batch of codes")
     print("Input 'manual' to add in your own codes")
     mode = input(" > ")
 
@@ -51,6 +49,7 @@ def main():
         f = open(filename)
         text = f.read()
         f.close()
+        listOfCodes = text.split(",")
 
     elif mode == "manual":
         print()
@@ -78,15 +77,15 @@ def main():
             elif code == "list":
                 print()
                 print("Current codes:")
-                for x in range(len(list)):
-                    print(str(x) + ": " + str(list[x]))
+                for x in range(len(listOfCodes)):
+                    print(str(x) + ": " + str(listOfCodes[x]))
                 print()
 
             elif code == "remove":
                 while True:
                     print("Here is the current list of codes:")
-                    for x in range(len(list)):
-                        print(str(x) + ": " + str(list[x]))
+                    for x in range(len(listOfCodes)):
+                        print(str(x) + ": " + str(listOfCodes[x]))
                     print("Input the index to remove or 'done':")
 
                     toRemove = input(" > ")
@@ -94,32 +93,33 @@ def main():
                         print("Back to input:")
                         break
                     else:
-                        list.pop(int(toRemove))
+                        listOfCodes.pop(int(toRemove))
 
             else:
-                list.append(code)
+                listOfCodes.append(code)
                 print("Got it!")
 
             print()
 
 
-    queries(list)
+    queries(listOfCodes)
 
-def queries(list):
+def queries(codes):
     print("Systems firing!")
-    admin = []
+    adminInfo = []
 
-    for x in range(len(list)):
-        admin.append([list[x], getAdminByCode(list[x])])
+    for x in range(len(codes)):
+        admin.append([codes[x], getAdminInfoByCode(codes[x])])
         time.sleep(1)
         print(".")
 
-    for x in range(len(admin)):
-        print(admin[x])
+    for x in range(len(adminInfo)):
+        print(adminInfo[x])
+    print()
 
     writeCSV(admin)
 
-def getAdminByCode(code):
+def getAdminInfoByCode(code):
     result = ""
     page = requests.get(url + code)
     soup = BeautifulSoup(page.text, 'html.parser')
@@ -140,6 +140,7 @@ def writeCSV(output):
     with open('output.csv', mode='w') as admin_file:
         admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
+        admin_writer.writerow(["CDS code", "Administrator"])
         for x in range(len(output)):
             admin_writer.writerow(output[x])
 
