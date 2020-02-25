@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+# encoding: utf-8
+#
+# hUEY
+# schoolboard scraper
+
+import time
+import csv
+import random
+import requests
+import urllib.request
+from bs4 import BeautifulSoup
+
+url = 'https://www.cde.ca.gov/SchoolDirectory/details?cdscode='
+
+mills = "43694684331799"
+abe = "43694196046940"
+
+def test():
+    result = ""
+
+    page = requests.get(url + mills)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    div = soup.find('th', text="Administrator").find_next_sibling().find('div')
+
+    current = div.next_element
+    while current.name != "a":
+        if current.name != "br":
+            text = current.strip()
+            if text != "":
+                result = result + text + ","
+        current = current.next_element
+
+    result += current.text
+    print(result)
+
+def main():
+    # UI
+
+    list = []
+
+    print()
+    print("Hi Shy!")
+    print()
+    print("Input 'file' to run a batch")
+    print("Input 'manual' to add in your own codes")
+    mode = input(" > ")
+
+    if mode == "file":
+        print("Input file name")
+        f = open(filename)
+        text = f.read()
+        f.close()
+
+    elif mode == "manual":
+        print()
+        print("Manual commands:")
+        print("Enter 'list' to see inputted codes.")
+        print("Enter 'remove' to enter remove mode.")
+        print("Enter 'done' to start scraping.")
+        print("Enter 'exit' to stop the program (will lose input).")
+        print()
+
+        print("To use, input CDS codes followed by enter.")
+
+        while True:
+            code = input(" > ")
+
+            if code == "":
+                continue
+
+            if code == "exit":
+                return
+
+            elif code == "done":
+                break
+
+            elif code == "list":
+                print()
+                print("Current codes:")
+                for x in range(len(list)):
+                    print(str(x) + ": " + str(list[x]))
+                print()
+
+            elif code == "remove":
+                while True:
+                    print("Here is the current list of codes:")
+                    for x in range(len(list)):
+                        print(str(x) + ": " + str(list[x]))
+                    print("Input the index to remove or 'done':")
+
+                    toRemove = input(" > ")
+                    if toRemove == "done":
+                        print("Back to input:")
+                        break
+                    else:
+                        list.pop(int(toRemove))
+
+            else:
+                list.append(code)
+                print("Got it!")
+
+            print()
+
+
+    queries(list)
+
+def queries(list):
+    print("Systems firing!")
+    admin = []
+
+    for x in range(len(list)):
+        admin.append([list[x], getAdminByCode(list[x])])
+        time.sleep(1)
+        print(".")
+
+    for x in range(len(admin)):
+        print(admin[x])
+
+    writeCSV(admin)
+
+def getAdminByCode(code):
+    result = ""
+    page = requests.get(url + code)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    div = soup.find('th', text="Administrator").find_next_sibling().find('div')
+
+    current = div.next_element
+    while current.name != "a":
+        if current.name != "br":
+            text = current.strip()
+            if text != "":
+                result = result + text + ","
+        current = current.next_element
+
+    result += current.text
+    return result;
+
+def writeCSV(output):
+    with open('output.csv', mode='w') as admin_file:
+        admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        for x in range(len(output)):
+            admin_writer.writerow(output[x])
+
+    print("File written! Goodbye!")
+
+if __name__ == "__main__":
+    main()
