@@ -13,8 +13,9 @@ from bs4 import BeautifulSoup
 
 url = 'https://www.cde.ca.gov/SchoolDirectory/details?cdscode='
 
-mills = "43694684331799"
-abe = "43694196046940"
+test_0 = "01611766134084"
+test_1 = "43694684331799"
+test_2 = "43694196046940"
 
 def test():
     result = ""
@@ -41,18 +42,33 @@ def main():
     print("Hi Shy!")
     print()
     print("Input 'file' to read in a batch of codes")
-    print("Input 'manual' to add in your own codes")
+    print("Input 'manual' to analyze your own codes")
     mode = input(" > ")
+    print()
 
     if mode == "file":
-        print("Input file name")
-        f = open(filename)
-        text = f.read()
+        print("Input file name, with extension")
+        filename = input(" > ")
+        f = open(filename, 'r')
+        count = 0
+
+        print()
+        print("Reading...")
+        while True:
+            count += 1
+            line = f.readline().strip()
+
+            if not line:
+                break
+
+            listOfCodes.append(line)
+            print("Code {}: {}".format(count, line))
+
         f.close()
-        listOfCodes = text.split(",")
+        print("File successfully read")
+        print()
 
     elif mode == "manual":
-        print()
         print("Manual commands:")
         print("Enter 'list' to see inputted codes.")
         print("Enter 'remove' to enter remove mode.")
@@ -101,7 +117,6 @@ def main():
 
             print()
 
-
     queries(listOfCodes)
 
 def queries(codes):
@@ -109,7 +124,7 @@ def queries(codes):
     adminInfo = []
 
     for x in range(len(codes)):
-        admin.append([codes[x], getAdminInfoByCode(codes[x])])
+        adminInfo.append([codes[x], getAdminInfoByCode(codes[x])])
         time.sleep(1)
         print(".")
 
@@ -117,13 +132,17 @@ def queries(codes):
         print(adminInfo[x])
     print()
 
-    writeCSV(admin)
+    writeCSV(adminInfo)
 
 def getAdminInfoByCode(code):
     result = ""
     page = requests.get(url + code)
     soup = BeautifulSoup(page.text, 'html.parser')
-    div = soup.find('th', text="Administrator").find_next_sibling().find('div')
+    target = soup.find('th', text="Administrator")
+    if target is None:
+        return "No Info"
+
+    div = target.find_next_sibling().find('div')
 
     current = div.next_element
     while current.name != "a":
@@ -137,13 +156,22 @@ def getAdminInfoByCode(code):
     return result;
 
 def writeCSV(output):
-    with open('output.csv', mode='w') as admin_file:
+    outputFile = "output"
+    print("Insert desired output filename, without extension")
+    print("Defaults to 'output.csv' if blank!")
+    inputName = input(" > ")
+
+    if inputName != "":
+        outputFile = inputName
+
+    with open(outputFile + ".csv", mode='w') as admin_file:
         admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-        admin_writer.writerow(["CDS code", "Administrator"])
+        admin_writer.writerow(["CDS Code", "Admin Info"])
         for x in range(len(output)):
             admin_writer.writerow(output[x])
 
+    print()
     print("File written! Goodbye!")
 
 if __name__ == "__main__":
