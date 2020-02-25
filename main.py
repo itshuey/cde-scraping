@@ -12,28 +12,29 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 url = 'https://www.cde.ca.gov/SchoolDirectory/details?cdscode='
+query_sleep_time = 1
 
 test_0 = "01611766134084"
 test_1 = "43694684331799"
 test_2 = "43694196046940"
 
-def test():
-    result = ""
-
-    page = requests.get(url + test_0)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    div = soup.find('th', text="Administrator").find_next_sibling().find('div')
-
-    current = div.next_element
-    while current.name != "a":
-        if current.name != "br":
-            text = current.strip()
-            if text != "":
-                result = result + text + ","
-        current = current.next_element
-
-    result += current.text
-    print(result)
+# def test():
+#     result = ""
+#
+#     page = requests.get(url + test_0)
+#     soup = BeautifulSoup(page.text, 'html.parser')
+#     div = soup.find('th', text="Administrator").find_next_sibling().find('div')
+#
+#     current = div.next_element
+#     while current.name != "a":
+#         if current.name != "br":
+#             text = current.strip()
+#             if text != "":
+#                 result = result + text + ","
+#         current = current.next_element
+#
+#     result += current.text
+#     print(result)
 
 def main():
     listOfCodes = []
@@ -132,7 +133,8 @@ def queries(codes):
 
     for x in range(len(codes)):
         adminInfo.append([codes[x], getAdminInfoByCode(codes[x])])
-        time.sleep(1)
+        # Sleep to avoid spamming their server
+        time.sleep(query_sleep_time)
         print(".")
 
     for x in range(len(adminInfo)):
@@ -166,13 +168,10 @@ def getAdminInfoByCode(code):
     return result;
 
 def writeCSV(output):
-    outputFile = "output.csv"
     print("Input desired output filename. Must have '.csv' extension.")
     print("Defaults to 'output.csv' if blank!")
     inputName = input(" > ")
-
-    if inputName != "":
-        outputFile = inputName
+    outputFile = inputName if inputName != "" else "output.csv"
 
     with open(outputFile, mode='w') as admin_file:
         admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
