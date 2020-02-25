@@ -129,7 +129,6 @@ def main():
 def queries(codes):
     print("Systems firing!")
     adminInfo = []
-    return
 
     for x in range(len(codes)):
         adminInfo.append([codes[x], getAdminInfoByCode(codes[x])])
