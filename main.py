@@ -2,7 +2,7 @@
 # encoding: utf-8
 #
 # hUEY
-# schoolboard scraper
+# cde admin info scraper
 
 import time
 import csv
@@ -20,7 +20,7 @@ test_2 = "43694196046940"
 def test():
     result = ""
 
-    page = requests.get(url + mills)
+    page = requests.get(url + test_0)
     soup = BeautifulSoup(page.text, 'html.parser')
     div = soup.find('th', text="Administrator").find_next_sibling().find('div')
 
@@ -66,7 +66,13 @@ def main():
 
         f.close()
         print("File successfully read")
+
         print()
+        print("Initialize scrape? (Y/N)")
+        proceed = input(" > ")
+        if proceed != "Y" and proceed != "y":
+            print("Exiting!")
+            return
 
     elif mode == "manual":
         print("Manual commands:")
@@ -85,6 +91,7 @@ def main():
                 continue
 
             if code == "exit":
+                print("Exiting!")
                 return
 
             elif code == "done":
@@ -122,6 +129,7 @@ def main():
 def queries(codes):
     print("Systems firing!")
     adminInfo = []
+    return
 
     for x in range(len(codes)):
         adminInfo.append([codes[x], getAdminInfoByCode(codes[x])])
@@ -137,6 +145,9 @@ def queries(codes):
 def getAdminInfoByCode(code):
     result = ""
     page = requests.get(url + code)
+    if page is None:
+        return "Invalid code"
+
     soup = BeautifulSoup(page.text, 'html.parser')
     target = soup.find('th', text="Administrator")
     if target is None:
@@ -156,15 +167,15 @@ def getAdminInfoByCode(code):
     return result;
 
 def writeCSV(output):
-    outputFile = "output"
-    print("Insert desired output filename, without extension")
+    outputFile = "output.csv"
+    print("Input desired output filename. Must have '.csv' extension.")
     print("Defaults to 'output.csv' if blank!")
     inputName = input(" > ")
 
     if inputName != "":
         outputFile = inputName
 
-    with open(outputFile + ".csv", mode='w') as admin_file:
+    with open(outputFile, mode='w') as admin_file:
         admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         admin_writer.writerow(["CDS Code", "Admin Info"])
