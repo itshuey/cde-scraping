@@ -125,6 +125,15 @@ def main():
 
             print()
 
+    elif mode == "exit":
+        print("Exiting!")
+        return
+
+    else:
+        print("Did not recognize that command.")
+        print("Exiting!")
+        return
+
     queries(listOfCodes)
 
 def queries(codes):
@@ -171,6 +180,11 @@ def writeCSV(output):
     print("Input desired output filename. Must have '.csv' extension.")
     print("Defaults to 'output.csv' if blank!")
     inputName = input(" > ")
+
+    if inputName == "exit":
+        print("Exiting!")
+        return
+
     outputFile = inputName if inputName != "" else "output.csv"
 
     with open(outputFile, mode='w') as admin_file:
