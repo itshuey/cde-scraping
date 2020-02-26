@@ -18,23 +18,24 @@ test_0 = "01611766134084"
 test_1 = "43694684331799"
 test_2 = "43694196046940"
 
-# def test():
-#     result = ""
-#
-#     page = requests.get(url + test_0)
-#     soup = BeautifulSoup(page.text, 'html.parser')
-#     div = soup.find('th', text="Administrator").find_next_sibling().find('div')
-#
-#     current = div.next_element
-#     while current.name != "a":
-#         if current.name != "br":
-#             text = current.strip()
-#             if text != "":
-#                 result = result + text + ","
-#         current = current.next_element
-#
-#     result += current.text
-#     print(result)
+def scrapeAllInfo():
+    result = ""
+
+    page = requests.get(url + test_1)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    div = soup.find('th', text="Administrator").find_next_sibling().find('div')
+
+    current = div.next_element
+    while current.name != "a":
+        if current.name != "br":
+            text = current.strip()
+            if text != "":
+                result = result + text + ","
+        current = current.next_element
+
+    result += current.text
+
+    return result
 
 def main():
     listOfCodes = []
@@ -74,6 +75,7 @@ def main():
         if proceed != "Y" and proceed != "y":
             print("Exiting!")
             return
+        print()
 
     elif mode == "manual":
         print("Manual commands:")
@@ -141,7 +143,8 @@ def queries(codes):
     adminInfo = []
 
     for x in range(len(codes)):
-        adminInfo.append([codes[x], getAdminInfoByCode(codes[x])])
+        info = getAdminInfoByCode(codes[x])
+        adminInfo.append([codes[x], info[0], info[1]])
         # Sleep to avoid spamming their server
         time.sleep(query_sleep_time)
         print(".")
@@ -153,7 +156,6 @@ def queries(codes):
     writeCSV(adminInfo)
 
 def getAdminInfoByCode(code):
-    result = ""
     page = requests.get(url + code)
     if page is None:
         return "Invalid code"
@@ -161,20 +163,13 @@ def getAdminInfoByCode(code):
     soup = BeautifulSoup(page.text, 'html.parser')
     target = soup.find('th', text="Administrator")
     if target is None:
-        return "No Info"
+        return ["No Info", "N/A"]
 
     div = target.find_next_sibling().find('div')
+    name = div.next_element.strip()
+    email = div.find('a').text.strip()
 
-    current = div.next_element
-    while current.name != "a":
-        if current.name != "br":
-            text = current.strip()
-            if text != "":
-                result = result + text + ","
-        current = current.next_element
-
-    result += current.text
-    return result;
+    return [name, email];
 
 def writeCSV(output):
     print("Input desired output filename. Must have '.csv' extension.")
@@ -190,7 +185,7 @@ def writeCSV(output):
     with open(outputFile, mode='w') as admin_file:
         admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-        admin_writer.writerow(["CDS Code", "Admin Info"])
+        admin_writer.writerow(["CDS Code", "Administrator", "Email"])
         for x in range(len(output)):
             admin_writer.writerow(output[x])
 
