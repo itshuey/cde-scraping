@@ -167,7 +167,8 @@ def getAdminInfoByCode(code):
 
     div = target.find_next_sibling().find('div')
     name = div.next_element.strip()
-    email = div.find('a').text.strip()
+    link = div.find('a')
+    email = "N/A" if link is None else link.text.strip()
 
     return [name, email];
 
