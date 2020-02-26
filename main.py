@@ -12,7 +12,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 url = 'https://www.cde.ca.gov/SchoolDirectory/details?cdscode='
-query_sleep_time = 1
+query_sleep_time = 0.1
 
 test_0 = "01611766134084"
 test_1 = "43694684331799"
@@ -147,7 +147,7 @@ def queries(codes):
         adminInfo.append([codes[x], info[0], info[1]])
         # Sleep to avoid spamming their server
         time.sleep(query_sleep_time)
-        print(".")
+        print(x)
 
     for x in range(len(adminInfo)):
         print(adminInfo[x])
