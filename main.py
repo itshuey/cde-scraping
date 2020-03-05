@@ -12,11 +12,14 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 url = 'https://www.cde.ca.gov/SchoolDirectory/details?cdscode='
+info_url_1 = 'https://www.cde.ca.gov/sdprofile/details.aspx?cds='
+info_url_2 = 'https://dq.cde.ca.gov/dataquest/dqcensus/enrethlevels.aspx?agglevel=School&year=2018-19&cds='
 query_sleep_time = 0.1
 
 test_0 = "01611766134084"
 test_1 = "43694684331799"
 test_2 = "43694196046940"
+test_3 = "01612916002414"
 
 def scrapeAllInfo():
     result = ""
@@ -143,8 +146,8 @@ def queries(codes):
     adminInfo = []
 
     for x in range(len(codes)):
-        info = getAdminInfoByCode(codes[x])
-        adminInfo.append([codes[x], info[0], info[1]])
+        info = getSchoolInfoByCode(codes[x])
+        adminInfo.append([codes[x], info[0], info[1], info[2], info[3]])
         # Sleep to avoid spamming their server
         time.sleep(query_sleep_time)
         print(x)
@@ -153,7 +156,27 @@ def queries(codes):
         print(adminInfo[x])
     print()
 
-    writeCSV(adminInfo)
+    writeInfoCSV(adminInfo)
+
+def getSchoolInfoByCode(code):
+    page = requests.get(info_url_1 + code)
+    # if page is None:
+    #     return "Invalid code"
+    soup = BeautifulSoup(page.text, 'html.parser')
+
+    el = soup.find(id='lblEnglishLanguageLearners').text
+    el_learners = el[el.find("(")+1:el.find("%")-1]
+    fl = soup.find(id='lblFreeLunch').text
+    free_lunch = fl[fl.find("(")+1:fl.find("%")-1]
+
+    page = requests.get(info_url_2 + code)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    tab = soup.find('td', class_='total').next_sibling
+    af_amer = tab.text[:-1]
+    as_amer = tab.next_sibling.next_sibling.text[:-1]
+
+    return [el_learners, free_lunch, af_amer, as_amer]
+
 
 def getAdminInfoByCode(code):
     page = requests.get(url + code)
@@ -170,7 +193,7 @@ def getAdminInfoByCode(code):
     link = div.find('a')
     email = "N/A" if link is None else link.text.strip()
 
-    return [name, email];
+    return [name, email]
 
 def writeCSV(output):
     print("Input desired output filename. Must have '.csv' extension.")
@@ -187,6 +210,27 @@ def writeCSV(output):
         admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         admin_writer.writerow(["CDS Code", "Administrator", "Email"])
+        for x in range(len(output)):
+            admin_writer.writerow(output[x])
+
+    print()
+    print("File written! Goodbye!")
+
+def writeInfoCSV(output):
+    print("Input desired output filename. Must have '.csv' extension.")
+    print("Defaults to 'output.csv' if blank!")
+    inputName = input(" > ")
+
+    if inputName == "exit":
+        print("Exiting!")
+        return
+
+    outputFile = inputName if inputName != "" else "output.csv"
+
+    with open(outputFile, mode='w') as admin_file:
+        admin_writer = csv.writer(admin_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        admin_writer.writerow(["CDS Code", "English Language Learners '%'", "Free/Reduced Lunch '%'", "African American '%'", "Asian '%'"])
         for x in range(len(output)):
             admin_writer.writerow(output[x])
 
