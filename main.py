@@ -159,6 +159,8 @@ def queries(codes):
     writeInfoCSV(adminInfo)
 
 def getSchoolInfoByCode(code):
+    if len(code) == 13:
+        code = "0" + code
     page = requests.get(info_url_1 + code)
     # if page is None:
     #     return "Invalid code"
